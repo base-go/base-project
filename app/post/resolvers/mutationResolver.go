@@ -2,8 +2,8 @@
 package resolvers
 
 import (
-	"github.com/base-project/app/post/mutations"
-	"github.com/base-project/app/post/types"
+	"base-project/app/post/mutations"
+	"base-project/app/post/types"
 )
 
 // MutationResolver resolves mutations related to posts
@@ -15,11 +15,11 @@ func (r *MutationResolver) CreatePost(input types.PostInput) (*types.Post, error
 }
 
 // UpdatePost resolves the mutation for updating an existing post
-func (r *MutationResolver) UpdatePost(id int, input types.PostInput) (*types.Post, error) {
-	return mutations.UpdatePost(id, input)
+func (r *MutationResolver) UpdatePost(id int, input types.UpdatePostInput) (*types.Post, error) {
+	return mutations.UpdatePost(input)
 }
 
 // DeletePost resolves the mutation for deleting a post
-func (r *MutationResolver) DeletePost(id int) error {
+func (r *MutationResolver) DeletePost(id int) (string, error) {
 	return mutations.DeletePost(id)
 }

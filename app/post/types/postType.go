@@ -1,15 +1,31 @@
-// File: base-project/app/post/types/postType.go
+package types
 
 import (
+	"github.com/graphql-go/graphql"
 	"gorm.io/gorm"
-	"time"
 )
 
+// Post struct for GORM model
 type Post struct {
 	gorm.Model
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Body      string    `json:"body"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Title   string
+	Content string
 }
+
+// PostType for GraphQL schema
+var PostType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name: "Post",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"title": &graphql.Field{
+				Type: graphql.String,
+			},
+			"content": &graphql.Field{
+				Type: graphql.String,
+			},
+		},
+	},
+)

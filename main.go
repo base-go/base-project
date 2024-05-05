@@ -1,27 +1,41 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/base-go/baseql/graphql"
-	"github.com/base-go/baseql/graphql/graphiql"
-	"github.com/base-go/baseql/graphql/introspection"
-	"github.com/base-project/app"
-	"github.com/base-project/core/database"
+	"base-project/app"
+	"base-project/core/database"
+	"base-project/core/graphiql"
+
+	"github.com/graphql-go/handler"
 )
 
 func main() {
-	database.InitDB()
+	database.InitDB() // Initialize the database
 
-	graphqlSchema := graphql.NewSchema() // Create a new GraphQL schema
+	graphqlSchema := app.InitApp() // Initialize all application modules and get the schema
 
-	app.InitApp(graphqlSchema) // Initialize all application modules
+	h := handler.New(&handler.Config{
+		Schema:   graphqlSchema,
+		Pretty:   true,
+		GraphiQL: true,
+	})
 
-	introspection.AddIntrospectionToSchema(graphqlSchema)
+	http.Handle("/graphql", h)
+	http.Handle("/graphiql/",
+		http.StripPrefix(
+			"/graphiql/", http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					graphiql.RenderGraphiQL(w, r)
+				},
+			),
+		),
+	)
 
-	http.Handle("/graphql", graphql.Handler(graphqlSchema))
-	http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
-	if err := http.ListenAndServe(":3030", nil); err != nil {
+	fmt.Println("Server is running on http://localhost:3232/graphql")
+
+	if err := http.ListenAndServe(":3232", nil); err != nil {
 		panic(err)
 	}
 }

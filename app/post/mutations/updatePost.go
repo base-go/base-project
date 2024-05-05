@@ -1,22 +1,72 @@
-// File: base-project/app/post/mutations/updatePost.go
 package mutations
 
 import (
-	"time"
+	"base-project/app/post/types"
+	"base-project/core/database"
+	"log"
 
-	"github.com/base-project/app/post/types"
+	"github.com/graphql-go/graphql"
 )
 
-// UpdatePost updates an existing post
-func UpdatePost(id int, input types.PostInput) (*types.Post, error) {
-	// TODO: Implement logic for updating a post
-	// For now, return a placeholder post
-	post := &types.Post{
-		ID:        id,
-		Title:     input.Title,
-		Body:      input.Body,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+func UpdatePost(input types.UpdatePostInput) (*types.Post, error) {
+	var post types.Post
+	if err := database.DB.First(&post, input.ID).Error; err != nil {
+		log.Printf("Error finding post: %v", err)
+		return nil, err
 	}
-	return post, nil
+
+	if input.Title != nil {
+		post.Title = *input.Title
+	}
+	if input.Content != nil {
+		post.Content = *input.Content
+	}
+
+	if err := database.DB.Save(&post).Error; err != nil {
+		log.Printf("Error updating post: %v", err)
+		return nil, err
+	}
+
+	return &post, nil
+}
+
+func UpdatePostField() *graphql.Field {
+	return &graphql.Field{
+		Type:        types.PostType,
+		Description: "Update an existing post",
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(graphql.NewInputObject(graphql.InputObjectConfig{
+					Name: "UpdatePostInput",
+					Fields: graphql.InputObjectConfigFieldMap{
+						"id": &graphql.InputObjectFieldConfig{
+							Type: graphql.NewNonNull(graphql.Int),
+						},
+						"title": &graphql.InputObjectFieldConfig{
+							Type: graphql.String,
+						},
+						"content": &graphql.InputObjectFieldConfig{
+							Type: graphql.String,
+						},
+					},
+				})),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			inputMap := p.Args["input"].(map[string]interface{})
+			updateInput := types.UpdatePostInput{
+				ID:      inputMap["id"].(int),
+				Title:   optionalString(inputMap["title"]),
+				Content: optionalString(inputMap["content"]),
+			}
+			return UpdatePost(updateInput)
+		},
+	}
+}
+
+func optionalString(val interface{}) *string {
+	if str, ok := val.(string); ok {
+		return &str
+	}
+	return nil
 }
