@@ -2,7 +2,7 @@ module base-project
 
 go 1.22
 
-require github.com/graphql-go/handler v0.2.3
+require github.com/base-go/handler v0.0.4
 
 require github.com/mattn/go-sqlite3 v1.14.22 // indirect
 
@@ -13,8 +13,3 @@ require (
 	gorm.io/driver/sqlite v1.5.5
 	gorm.io/gorm v1.25.10
 )
-
-// replace (
-// 	github.com/base-project/app => ./app
-// 	github.com/base-project/core => ./core
-// )

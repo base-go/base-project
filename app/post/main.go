@@ -10,33 +10,17 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func InitPostModule(schema *graphql.Schema) {
-	// Initialize the post module
-	fmt.Println("Initializing post module")
-	Migrate()
-	CreateSchema()
-	CreateQuery()
-	CreateMutation()
-	fmt.Println("Post module initialized")
-}
-func Migrate() {
-	// Migrate the post module
-	database.DB.AutoMigrate(&types.Post{})
-}
-func CreateSchema() graphql.Schema {
-	schema, _ := graphql.NewSchema(
-		graphql.SchemaConfig{
-			Query:    CreateQuery(),
-			Mutation: CreateMutation(),
-		},
-	)
-	return schema
+type PostModule struct{}
+
+func init() {
+	fmt.Println("Registering post module")
+	//modules.RegisterModule("post", &postModule{})
 }
 
-func CreateQuery() *graphql.Object {
+func (p *PostModule) CreateQuery() *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
-			Name: "Query",
+			Name: "PostQueries",
 			Fields: graphql.Fields{
 				"getAllPosts": queries.GetAllPostsField(),
 				"getPostById": queries.GetPostByIDField(),
@@ -45,10 +29,10 @@ func CreateQuery() *graphql.Object {
 	)
 }
 
-func CreateMutation() *graphql.Object {
+func (p *PostModule) CreateMutation() *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
-			Name: "Mutation",
+			Name: "PostMutations",
 			Fields: graphql.Fields{
 				"createPost": mutations.CreatePostField(),
 				"updatePost": mutations.UpdatePostField(),
@@ -56,4 +40,11 @@ func CreateMutation() *graphql.Object {
 			},
 		},
 	)
+}
+
+func Migrate() {
+	// Migrate the post database model
+	fmt.Println("Migrating post model...")
+	database.DB.AutoMigrate(&types.Post{})
+	fmt.Println("Post model migration completed.")
 }

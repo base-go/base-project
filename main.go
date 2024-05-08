@@ -8,7 +8,7 @@ import (
 	"base-project/core/database"
 	"base-project/core/graphiql"
 
-	"github.com/graphql-go/handler"
+	"github.com/base-go/handler"
 )
 
 func main() {
