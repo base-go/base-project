@@ -16,7 +16,7 @@ func DeletePost(id int) (string, error) {
 	}
 	return "Post successfully deleted", nil
 }
-func DeletePostField() *graphql.Field {
+func DeleteField() *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.String,
 		Description: "Delete a post",

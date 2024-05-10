@@ -12,18 +12,13 @@ import (
 
 type PostModule struct{}
 
-func init() {
-	fmt.Println("Registering post module")
-	//modules.RegisterModule("post", &postModule{})
-}
-
 func (p *PostModule) CreateQuery() *graphql.Object {
 	return graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "PostQueries",
 			Fields: graphql.Fields{
-				"getAllPosts": queries.GetAllPostsField(),
-				"getPostById": queries.GetPostByIDField(),
+				"list": queries.All(),
+				"show": queries.ByID(),
 			},
 		},
 	)
@@ -34,17 +29,22 @@ func (p *PostModule) CreateMutation() *graphql.Object {
 		graphql.ObjectConfig{
 			Name: "PostMutations",
 			Fields: graphql.Fields{
-				"createPost": mutations.CreatePostField(),
-				"updatePost": mutations.UpdatePostField(),
-				"deletePost": mutations.DeletePostField(),
+				"create": mutations.CreateField(),
+				"update": mutations.UpdateField(),
+				"delete": mutations.DeleteField(),
 			},
 		},
 	)
 }
 
-func Migrate() {
+func (p *PostModule) Migrate() error {
 	// Migrate the post database model
 	fmt.Println("Migrating post model...")
 	database.DB.AutoMigrate(&types.Post{})
+	if err := database.DB.AutoMigrate(&types.Post{}); err != nil {
+		fmt.Println("Post model migration failed:", err)
+		return err
+	}
 	fmt.Println("Post model migration completed.")
+	return nil
 }

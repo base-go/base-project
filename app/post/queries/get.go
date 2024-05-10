@@ -4,19 +4,26 @@ import (
 	"base-project/app/post/types"
 	"base-project/core/database"
 	"errors"
+	"fmt"
 
 	"github.com/graphql-go/graphql"
 )
 
-// GetAllPostsField returns a GraphQL field configuration for getting all posts.
-func GetAllPostsField() *graphql.Field {
+// All returns a GraphQL field configuration for getting all posts.
+func All() *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.NewList(types.PostType),
 		Description: "Get all posts",
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			fmt.Println("Executing All resolver...")
 			var posts []types.Post
 			if err := database.DB.Find(&posts).Error; err != nil {
+				fmt.Printf("Error fetching posts: %v\n", err)
 				return nil, err
+			}
+			fmt.Printf("Posts retrieved: %d\n", len(posts))
+			for _, post := range posts {
+				fmt.Printf("Post: %v\n", post)
 			}
 			return posts, nil
 		},
@@ -24,7 +31,7 @@ func GetAllPostsField() *graphql.Field {
 }
 
 // GetAllPosts retrieves all posts
-func GetPostByIDField() *graphql.Field {
+func ByID() *graphql.Field {
 	return &graphql.Field{
 		Type:        types.PostType,
 		Description: "Get post by ID",

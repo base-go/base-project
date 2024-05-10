@@ -30,7 +30,7 @@ func UpdatePost(input types.UpdatePostInput) (*types.Post, error) {
 	return &post, nil
 }
 
-func UpdatePostField() *graphql.Field {
+func UpdateField() *graphql.Field {
 	return &graphql.Field{
 		Type:        types.PostType,
 		Description: "Update an existing post",

@@ -1,62 +1,80 @@
 package app
 
 import (
-	"base-project/app/modules"
 	"base-project/app/post"
-	"base-project/app/user"
+	"base-project/core/registry"
 	"fmt"
 
 	"github.com/graphql-go/graphql"
 )
 
 func InitApp() *graphql.Schema {
-
-	modules.RegisterModule("post", &post.PostModule{})
-
-	modules.RegisterModule("post", &user.UserModule{})
+	registry.RegisterModule("post", &post.PostModule{})
 
 	queryFields := graphql.Fields{}
+	mutationFields := graphql.Fields{}
 
-	for name, module := range modules.GetAllModules() {
+	// Iterate once over all modules to configure both queries and mutations
+	for name, module := range registry.GetAllModules() {
 		fmt.Printf("Loading module: %s\n", name)
-		modQuery := module.CreateQuery()
-		if modQuery == nil {
-			fmt.Printf("Query object for module %s is nil\n", name)
-			continue
+		fmt.Printf("Loading and migrating module: %s\n", name)
+		if migrator, ok := module.(interface{ Migrate() error }); ok {
+			if err := migrator.Migrate(); err != nil {
+				fmt.Printf("Failed to migrate module %s: %v\n", name, err)
+				panic(fmt.Sprintf("Migration failed for module %s: %v", name, err))
+			}
 		}
-		queryFields[name] = &graphql.Field{Type: modQuery}
+		// Handle the query part
+		modQuery := module.CreateQuery()
+		if modQuery != nil {
+			queryFields[name] = &graphql.Field{
+				Type: modQuery,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					// these fields primarily organize nested queries
+					return struct{}{}, nil
+				},
+			}
+		} else {
+			fmt.Printf("Query object for module %s is nil\n", name)
+		}
+
+		// Handle the mutation part
+		modMutation := module.CreateMutation()
+		if modMutation != nil {
+			mutationFields[name] = &graphql.Field{Type: modMutation,
+
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					// these fields primarily organize nested mutations
+					return struct{}{}, nil
+				},
+			}
+
+		} else {
+			fmt.Printf("Mutation object for module %s is nil\n", name)
+		}
 	}
+
+	// Create the RootQuery object
 	rootQuery := graphql.NewObject(graphql.ObjectConfig{
 		Name:   "RootQuery",
 		Fields: queryFields,
 	})
-
-	mutationFields := graphql.Fields{}
-
-	for name, module := range modules.GetAllModules() {
-		fmt.Printf("Loading module: %s\n", name)
-		modMutation := module.CreateMutation()
-		if modMutation == nil {
-			fmt.Printf("Mutation object for module %s is nil\n", name)
-			continue
-		}
-		mutationFields[name] = &graphql.Field{Type: modMutation}
-	}
-	rootMutation := graphql.NewObject(graphql.ObjectConfig{
-		Name:   "RootMutation",
-		Fields: mutationFields,
-	})
-
 	if len(queryFields) == 0 {
 		fmt.Println("No query fields have been defined. Cannot create a valid RootQuery object.")
 		panic("RootQuery fields must be an object with field names as keys.")
 	}
 
+	// Create the RootMutation object
+	rootMutation := graphql.NewObject(graphql.ObjectConfig{
+		Name:   "RootMutation",
+		Fields: mutationFields,
+	})
+
+	// Create and return the schema
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query:    rootQuery,
 		Mutation: rootMutation,
 	})
-
 	if err != nil {
 		fmt.Println("Failed to create GraphQL schema:", err)
 		panic(err)

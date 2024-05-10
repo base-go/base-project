@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Post struct for GORM model
+// Post struct
 type Post struct {
 	gorm.Model
 	Title   string
@@ -26,6 +26,21 @@ var PostType = graphql.NewObject(
 			"content": &graphql.Field{
 				Type: graphql.String,
 			},
+			"createdAt": &graphql.Field{
+				Type: graphql.DateTime,
+			},
 		},
 	},
 )
+
+// PostInput for   GORM model
+type PostInput struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+type UpdatePostInput struct {
+	ID      int     `json:"id"`
+	Title   *string `json:"title"`
+	Content *string `json:"content"`
+}

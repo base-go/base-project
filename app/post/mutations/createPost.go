@@ -21,7 +21,7 @@ func CreatePost(input types.PostInput) (*types.Post, error) {
 }
 
 // CreatePostField returns a GraphQL field configuration for creating a post.
-func CreatePostField() *graphql.Field {
+func CreateField() *graphql.Field {
 	return &graphql.Field{
 		Type:        types.PostType,
 		Description: "Create a new post",

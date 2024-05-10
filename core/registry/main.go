@@ -1,4 +1,4 @@
-package modules
+package registry
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 type GraphQLModule interface {
 	CreateQuery() *graphql.Object
 	CreateMutation() *graphql.Object
+	Migrate() error
 }
 
 var (
@@ -45,7 +46,6 @@ func GetAllModules() map[string]GraphQLModule {
 	for key, value := range modulesRegistry {
 		copy[key] = value
 	}
-	fmt.Printf("Modules count: %d\n", len(modulesRegistry))
 	fmt.Printf("Retrieved all modules, count: %d\n", len(copy))
 	return copy
 }

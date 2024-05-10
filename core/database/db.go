@@ -14,8 +14,3 @@ func InitDB() {
 		panic("failed to connect database")
 	}
 }
-
-func CloseDB() {
-	db, _ := DB.DB()
-	db.Close()
-}
