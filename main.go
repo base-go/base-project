@@ -1,41 +1,77 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"base-project/app"
+	"base-project/core"
 	"base-project/core/database"
-	"base-project/core/graphiql"
+	"base-project/core/registry"
 
 	"github.com/base-go/handler"
+	"github.com/graphql-go/graphql"
 )
 
 func main() {
-	database.InitDB() // Initialize the database
+	// Initialize the database
+	if err := database.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize the database: %v", err)
+	}
 
-	graphqlSchema := app.InitApp() // Initialize all application modules and get the schema
+	// Register all modules from app and core packages
+	app.Init()
+	core.Init()
 
+	// Initialize GraphQL schema
+	schema, err := initGraphQLSchema()
+	if err != nil {
+		log.Fatalf("Failed to create GraphQL schema: %v", err)
+	}
+
+	// Setup GraphQL HTTP handler
 	h := handler.New(&handler.Config{
-		Schema:   graphqlSchema,
+		Schema:   &schema,
 		Pretty:   true,
 		GraphiQL: true,
 	})
 
+	// Configure HTTP routes
 	http.Handle("/graphql", h)
-	http.Handle("/graphiql/",
-		http.StripPrefix(
-			"/graphiql/", http.HandlerFunc(
-				func(w http.ResponseWriter, r *http.Request) {
-					graphiql.RenderGraphiQL(w, r)
-				},
-			),
-		),
-	)
+	log.Println("Server is running on http://localhost:8080/graphql")
 
-	fmt.Println("Server is running on http://localhost:3232/graphql")
-
-	if err := http.ListenAndServe(":3232", nil); err != nil {
-		panic(err)
+	// Start the server
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+func initGraphQLSchema() (graphql.Schema, error) {
+	queryFields := graphql.Fields{}
+	mutationFields := graphql.Fields{}
+
+	// Configure both queries and mutations for all modules
+	for name, module := range registry.GetAllModules() {
+		if query := module.CreateQuery(); query != nil {
+			queryFields[name] = &graphql.Field{Type: query}
+		}
+		if mutation := module.CreateMutation(); mutation != nil {
+			mutationFields[name] = &graphql.Field{Type: mutation}
+		}
+	}
+
+	rootQuery := graphql.NewObject(graphql.ObjectConfig{
+		Name:   "RootQuery",
+		Fields: queryFields,
+	})
+
+	rootMutation := graphql.NewObject(graphql.ObjectConfig{
+		Name:   "RootMutation",
+		Fields: mutationFields,
+	})
+
+	return graphql.NewSchema(graphql.SchemaConfig{
+		Query:    rootQuery,
+		Mutation: rootMutation,
+	})
 }

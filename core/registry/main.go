@@ -15,6 +15,20 @@ type GraphQLModule interface {
 	Migrate() error
 }
 
+type DefaultModule struct{}
+
+func (DefaultModule) CreateQuery() *graphql.Object {
+	return nil // Default implementation returns nil, indicating no queries provided
+}
+
+func (DefaultModule) CreateMutation() *graphql.Object {
+	return nil // Default implementation returns nil, indicating no mutations provided
+}
+
+func (DefaultModule) Migrate() error {
+	return nil // Assume no migration needed by default
+}
+
 var (
 	// modulesRegistry stores all registered modules. The key is the module name.
 	modulesRegistry = make(map[string]GraphQLModule)
