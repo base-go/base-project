@@ -7,6 +7,7 @@ import (
 	"base-project/app"
 	"base-project/core"
 	"base-project/core/database"
+	"base-project/core/middleware"
 	"base-project/core/registry"
 
 	"github.com/base-go/handler"
@@ -50,7 +51,7 @@ func main() {
 	})
 
 	// Configure HTTP routes
-	http.Handle("/graphql", h)
+	http.Handle("/graphql", middleware.AuthMiddleware(h))
 	log.Println("Server is running on http://localhost:8080/graphql")
 
 	// Start the server
