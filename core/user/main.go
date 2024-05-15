@@ -47,7 +47,7 @@ func (u *UserModule) Resolvable() graphql.FieldResolveFn {
 func (p *UserModule) Migrate() error {
 	// Migrate the user database model
 	fmt.Println("Migrating user model...")
-	database.DB.AutoMigrate(&types.User{})
+
 	if err := database.DB.AutoMigrate(&types.User{}); err != nil {
 		fmt.Println("User model migration failed:", err)
 		return err

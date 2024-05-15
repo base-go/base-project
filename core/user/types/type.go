@@ -9,17 +9,17 @@ import (
 
 // User struct
 type User struct {
-	gorm.Model   // Includes fields ID, CreatedAt, UpdatedAt, DeletedAt
-	Name         string
-	Username     string
-	Email        string
-	Avatar       string
-	PasswordHash string
-	LastLogin    time.Time
-	Provider     string
-	ProviderID   string
-	AccessToken  string
-	RefreshToken string
+	gorm.Model             // Includes fields ID, CreatedAt, UpdatedAt, DeletedAt
+	Name         string    `gorm:"column:name"`
+	Username     string    `gorm:"column:username"`
+	Email        string    `gorm:"column:email"`
+	Avatar       string    `gorm:"column:avatar"`
+	PasswordHash string    `gorm:"column:password_hash"`
+	LastLogin    time.Time `gorm:"column:last_login"`
+	Provider     string    `gorm:"column:provider"`
+	ProviderID   string    `gorm:"column:provider_id"`
+	AccessToken  string    `gorm:"column:access_token"`
+	RefreshToken string    `gorm:"column:refresh_token"`
 }
 
 // UserType for GraphQL schema

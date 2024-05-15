@@ -13,6 +13,17 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+func runMigrations() {
+	modules := registry.GetAllModules()
+	for name, module := range modules {
+		err := module.Migrate()
+		if err != nil {
+			log.Printf("Migration failed for module %s: %v\n", name, err)
+		} else {
+			log.Printf("Migration successful for module %s\n", name)
+		}
+	}
+}
 func main() {
 	// Initialize the database
 	if err := database.InitDB(); err != nil {
@@ -23,6 +34,8 @@ func main() {
 	app.Init()
 	core.Init()
 
+	// Run all migrations
+	runMigrations()
 	// Initialize GraphQL schema
 	schema, err := initGraphQLSchema()
 	if err != nil {
@@ -56,8 +69,14 @@ func initGraphQLSchema() (graphql.Schema, error) {
 			queryFields[name] = &graphql.Field{Type: query}
 		}
 		if mutation := module.CreateMutation(); mutation != nil {
-			mutationFields[name] = &graphql.Field{Type: mutation}
+			mutationFields[name] = &graphql.Field{
+				Type: mutation,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source, nil
+				},
+			}
 		}
+
 	}
 
 	rootQuery := graphql.NewObject(graphql.ObjectConfig{

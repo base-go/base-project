@@ -40,11 +40,13 @@ func (p *PostModule) CreateMutation() *graphql.Object {
 func (p *PostModule) Migrate() error {
 	// Migrate the post database model
 	fmt.Println("Migrating post model...")
-	database.DB.AutoMigrate(&types.Post{})
+
+	// Perform the migration a single time and check for any errors
 	if err := database.DB.AutoMigrate(&types.Post{}); err != nil {
 		fmt.Println("Post model migration failed:", err)
-		return err
+		return err // Early return on error
 	}
-	fmt.Println("Post model migration completed.")
+
+	fmt.Println("Post model migration completed successfully.")
 	return nil
 }

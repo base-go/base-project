@@ -68,6 +68,7 @@ func CreateUserField() *graphql.Field {
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input, _ := p.Args["input"].(map[string]interface{})
+
 			userInput := types.UserInput{
 				Username:     input["username"].(string),     // Adjusted for dynamic casting
 				Email:        input["email"].(string),        // Adjusted for dynamic casting

@@ -22,6 +22,7 @@ const (
 )
 
 func (a *AuthModule) CreateMutation() *graphql.Object {
+	fmt.Println("Creating AuthMutation")
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "AuthMutation",
 		Fields: graphql.Fields{
@@ -42,11 +43,13 @@ func (a *AuthModule) CreateMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					fmt.Println("Resolving register")
 					name, _ := params.Args["name"].(string)
 					username, _ := params.Args["username"].(string)
 					email, _ := params.Args["email"].(string)
 					password, _ := params.Args["password"].(string)
 
+					fmt.Println(name, username, email, password)
 					// Check if user already exists
 					existingUser := types.User{}
 					database.DB.Where("username = ? OR email = ?", username, email).First(&existingUser)
